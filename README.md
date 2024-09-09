@@ -1,29 +1,64 @@
-# Тестовое задание KFD
+# Terminal - Test task of KFD
 
-Разработайте логику терминала обмена валютных пар. После каждого обмена курс каждой пары будет случайным образом изменяться до 5% в любую сторону. Обмен осуществляется по одинаковому курсу для покупки и продажи: если 1 RUB = 90 USD, то можно купить 1 USD за 90 RUB и продать 90 RUB за 1 USD.
+## Description
 
-## Параметры
+Check the original repository to find the task description.
 
-### Начальные средства пользователя:
+Here I'll share some implementation details:
+1. My programming language of choice is [Kotlin](https://kotlinlang.org/).
+2. I use [Gradle](https://gradle.org/). 
+3. Application provides simple interactive CLI to run terminal.
+4. Initial exchange rates are calculated based on initial terminal balance.
+5. Code can be extended to have multiple users. Check `User.kt` for details.
+6. There are some quality of life enhancements such as detailed error messages.
 
-- 1'000'000 RUB
+Here is some real output from terminal:
 
-### Начальные средства терминала:
+```text
+PS C:\Users\admin\IdeaProjects\Terminal> java -jar .\build\libs\Terminal-1.0-SNAPSHOT-all.jar           
+Welcome to terminal!
+Enter an operation (or h for help): h
+Available operations:
+    h - help
+    b - balance
+    c - print currency list
+    d - print exchange rates
+    e - exit
+    ex[amount]<from>-[amount]<to> - exchange
+Example: ex1000USD-RUB; exRUB-250USD
+Enter an operation (or h for help): b
+Your balance:
+    RUB - 1 000 000,0000000000
+    USD - 0,0000000000
+    EUR - 0,0000000000
+    USDT - 0,0000000000
+    BTC - 0,0000000000
+Terminal balance:
+    RUB - 10 000,0000000000
+    USD - 1 000,0000000000
+    EUR - 1 000,0000000000
+    USDT - 1 000,0000000000
+    BTC - 1,5000000000
+Enter an operation (or h for help):
+```
 
-- 10'000 RUB
-- 1'000 USD
-- 1'000 EUR
-- 1'000 USDT
-- 1.5 BTC
+## Build
 
-### Валютные пары:
+In order to build runnable jar file we need to bundle all kotlin
+libraries and dependencies in one jar file.
 
-- RUB / USD
-- RUB / EUR
-- USD / EUR
-- USD / USDT
-- USD / BTC
+[Shadow](https://github.com/GradleUp/shadow?ysclid=m0vb0xowdq283487607) plugin is used to do that.
 
-## Требования
+```shell
+./gradlew shadowJar
+```
 
-Система должна работать как консольное приложение, ожидать ввода пользователя и обрабатывать запросы. Реализуйте приложение на любом языке программирования. В репозитории должны быть README.md файл и видео, демонстрирующее работу системы, включая обработку краевых случаев, таких как некорректный ввод или недостаток средств.
+## Usage
+
+Now run jar file with `java > 17.0`.
+
+```shell
+java -jar ./build/libs/Terminal-1.0-SNAPSHOT-all.jar
+```
+
+
