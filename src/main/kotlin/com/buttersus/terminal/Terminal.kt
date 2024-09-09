@@ -4,7 +4,7 @@ import com.buttersus.extensions.sort
 
 object Terminal {
     internal const val MAX_EXCHANGE_RATE_CHANGE = 0.05
-    internal val balance: Map<Currency, Double> = Currency.values().associateWith { it.initialUserValue }
+    internal val balance: MutableMap<Currency, Double> = Currency.values().associateWith { it.initialTerminalValue }.toMutableMap()
 
     // We need to store all possible pair relations
     private val exchangeRates: Map<Pair<Currency, Currency>, ExchangeRate> = mapOf(
@@ -15,11 +15,43 @@ object Terminal {
         ExchangeRate(Currency.USD, Currency.BTC).getMapItem(),
     )
 
-    fun exchange(user: User, amount: Double, from: Currency, to: Currency): Unit? {
-        val exchangeRate = exchangeRates[(from to to).sort()]
+    fun exchangeFrom(user: User, amountFrom: Double, from: Currency, to: Currency) {
+        // Checking if exchange is possible
+        val exchangeRate = exchangeRates.getValue((from to to).sort())
+        if (amountFrom < 0) throw IllegalArgumentException()
+
+        // Calculate how many can be exchanged && update balance
+        val (fromDelta, toDelta) = exchangeRate.getExchangePairFrom(user, amountFrom, from, to)
+        updateBalance(user, fromDelta, from, toDelta, to)
+
+        // Update exchange rate
+        exchangeRate.update()
     }
 
-    fun isExchangePossible(from: Currency, to: Currency): Boolean {
-        return (from to to).sort() in exchangeRates && from != to && balance.getValue(to) > 0.0
+    fun exchangeTo(user: User, amountTo: Double, from: Currency, to: Currency) {
+        // Checking if exchange is possible
+        val exchangeRate = exchangeRates.getValue((from to to).sort())
+        if (amountTo < 0) throw IllegalArgumentException()
+
+        // Calculate how many can be exchanged
+        val (fromDelta, toDelta) = exchangeRate.getExchangePairTo(user, amountTo, from, to)
+        updateBalance(user, fromDelta, from, toDelta, to)
+
+        // Update exchange rate
+        exchangeRate.update()
     }
+
+    private fun updateBalance(user: User, fromDelta: Double, from: Currency, toDelta: Double, to: Currency) {
+        user.balance[from] = user.balance.getValue(from) - fromDelta
+        user.balance[to] = user.balance.getValue(to) + toDelta
+        this.balance[from] = this.balance.getValue(from) + fromDelta
+        this.balance[to] = this.balance.getValue(to) - toDelta
+    }
+
+    // Methods
+    fun isExchangePossible(from: Currency, to: Currency): Boolean {
+        return (from to to).sort() in exchangeRates.keys && from != to && this.balance.getValue(to) > 0.0
+    }
+
+    fun getExchangeRates(): List<ExchangeRate> = exchangeRates.values.toList()
 }
